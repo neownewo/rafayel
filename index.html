@@ -375,19 +375,6 @@
     createDanmu(msg?.content);
   });
 
-  // ===== 小優化：避免頁面切換到背景仍狂跑 =====
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden){
-      // 可視需求：背景時暫停影片
-      if (!videoEl.paused) videoEl.pause();
-    }else{
-      // 回來後如果已到時間就確保顯示影片
-      updateCountdown();
-      if (videoShown && videoEl.paused){
-        videoEl.play().catch(()=>{});
-      }
-    }
-  });
   createDanmu("彈幕測試：如果看到我，畫面層級正常 ✨");
   // 測試：強制顯示一條本地測試彈幕（不靠 Firebase）
 	try {
