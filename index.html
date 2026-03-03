@@ -334,8 +334,8 @@
   }
 
   // 本地測試彈幕（確認 overlay OK）
-  createDanmu("測試彈幕：看到我代表畫面正常 ✨");
-  console.log("✅ local test danmu created");
+  //createDanmu("測試彈幕：看到我代表畫面正常 ✨");
+  //console.log("✅ local test danmu created");
 
   // ===== 文字清理 =====
   function sanitizeText(text) {
@@ -386,6 +386,100 @@
       if (videoShown && videoEl.paused) videoEl.play().catch(() => {});
     }
   });
+  
+  // ========================
+// 🔁 彈幕輪播系統（直接貼底下）
+// ========================
+
+// 如果前面沒有宣告，這裡保險宣告一次
+if (typeof danmuPool === "undefined") {
+  window.danmuPool = [];
+}
+
+// 改寫 onChildAdded：只存資料，不直接播放
+// （如果你前面已經有 onChildAdded，請刪掉舊的那段）
+const messagesQuery = query(messagesRef, limitToLast(80));
+
+onChildAdded(messagesQuery, (data) => {
+  const msg = data.val();
+  if (msg?.content) {
+    danmuPool.push(msg.content);
+  }
+});
+
+// 輪播設定
+let danmuIndex = 0;
+const DANMU_INTERVAL = 2000; // 每 2 秒一條
+
+function startDanmuLoop() {
+  setInterval(() => {
+    if (!danmuVisible) return;
+    if (!danmuPool || danmuPool.length === 0) return;
+
+    // 順序輪播（不重複亂跳）
+    createDanmu(danmuPool[danmuIndex]);
+
+    danmuIndex++;
+    if (danmuIndex >= danmuPool.length) {
+      danmuIndex = 0;
+    }
+
+  }, DANMU_INTERVAL);
+}
+
+// 啟動輪播
+startDanmuLoop();
+
+// 本地測試（確保至少有一條）
+if (danmuPool.length === 0) {
+  danmuPool.push("祁煜生日快樂 💙");
+// ========================
+// 🔁 彈幕輪播系統（直接貼底下）
+// ========================
+
+// 如果前面沒有宣告，這裡保險宣告一次
+if (typeof danmuPool === "undefined") {
+  window.danmuPool = [];
+}
+
+// 改寫 onChildAdded：只存資料，不直接播放
+// （如果你前面已經有 onChildAdded，請刪掉舊的那段）
+const messagesQuery = query(messagesRef, limitToLast(80));
+
+onChildAdded(messagesQuery, (data) => {
+  const msg = data.val();
+  if (msg?.content) {
+    danmuPool.push(msg.content);
+  }
+});
+
+// 輪播設定
+let danmuIndex = 0;
+const DANMU_INTERVAL = 2000; // 每 2 秒一條
+
+function startDanmuLoop() {
+  setInterval(() => {
+    if (!danmuVisible) return;
+    if (!danmuPool || danmuPool.length === 0) return;
+
+    // 順序輪播（不重複亂跳）
+    createDanmu(danmuPool[danmuIndex]);
+
+    danmuIndex++;
+    if (danmuIndex >= danmuPool.length) {
+      danmuIndex = 0;
+    }
+
+  }, DANMU_INTERVAL);
+}
+
+// 啟動輪播
+startDanmuLoop();
+
+// 本地測試（確保至少有一條）
+if (danmuPool.length === 0) {
+  danmuPool.push("祁煜生日快樂 💙");
+}}
 </script>
 
 </body>
