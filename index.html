@@ -204,42 +204,41 @@
   </div>
 
 <script type="module">
-	// ---------- debug boot block ----------
-	console.log("✅ module script loaded (debug bumper)");
-	document.body.insertAdjacentHTML(
-	  "afterbegin",
-	  '<div id="__dbg_banner" style="position:fixed;top:8px;left:8px;z-index:9999;padding:6px 10px;background:#0008;color:#fff;border-radius:10px;font-size:12px">module ok</div>'
-	);
+  // ---------- debug boot block ----------
+  console.log("✅ module script loaded (debug bumper)");
+  document.body.insertAdjacentHTML(
+    "afterbegin",
+    '<div id="__dbg_banner" style="position:fixed;top:8px;left:8px;z-index:9999;padding:6px 10px;background:#0008;color:#fff;border-radius:10px;font-size:12px">module ok</div>'
+  );
 
-	// 全域錯誤監聽
-	window.addEventListener("error", (e) => {
-	  console.error("❌ window error:", e.message, e.error);
-	  const el = document.getElementById("__dbg_banner");
-	  if (el) el.textContent = "window error: " + e.message;
-	});
-	window.addEventListener("unhandledrejection", (e) => {
-	  console.error("❌ unhandled rejection:", e.reason);
-	  const el = document.getElementById("__dbg_banner");
-	  if (el) el.textContent = "unhandled rejection";
-	});
-	// ---------- end debug boot block ----------
-  // Firebase 12.10.0
+  window.addEventListener("error", (e) => {
+    console.error("❌ window error:", e.message, e.error);
+    const el = document.getElementById("__dbg_banner");
+    if (el) el.textContent = "window error: " + e.message;
+  });
+  window.addEventListener("unhandledrejection", (e) => {
+    console.error("❌ unhandled rejection:", e.reason);
+    const el = document.getElementById("__dbg_banner");
+    if (el) el.textContent = "unhandled rejection";
+  });
+  // ---------- end debug boot block ----------
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-  import { getDatabase, ref, push, onChildAdded, query, limitToLast } 
-    from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+  import {
+    getDatabase, ref, push, onChildAdded, query, limitToLast
+  } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
 
-  // ===== 重要：切換日期（03/15 才顯示影片）=====
-  // 建議用 ISO +08:00，避免不同瀏覽器解析「March ...」差異
+  // 03/15 才切換成影片（台灣時間）
   const VIDEO_SWITCH_AT = new Date("2026-03-15T00:00:00+08:00").getTime();
 
   const firebaseConfig = {
     apiKey: "AIzaSyCsXDi3XafLhOY0Bwq47s-_s-f3rwGJhAk",
     authDomain: "rafayel-c806e.firebaseapp.com",
+    databaseURL: "https://rafayel-c806e-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "rafayel-c806e",
     storageBucket: "rafayel-c806e.firebasestorage.app",
     messagingSenderId: "121278015626",
     appId: "1:121278015626:web:26ba3ca3be10b76b782573",
-	databaseURL: "https://rafayel-c806e-default-rtdb.asia-southeast1.firebasedatabase.app",
     measurementId: "G-9P3FJLDTNY"
   };
 
@@ -247,7 +246,7 @@
   const db = getDatabase(app);
   const messagesRef = ref(db, "blessings");
 
-  // ===== UI references =====
+  // ===== DOM =====
   const countdownUI = document.getElementById("countdown-ui");
   const timerEl = document.getElementById("timer");
   const videoEl = document.getElementById("bg-video");
@@ -258,43 +257,40 @@
   const input = document.getElementById("msgInput");
   const sendBtn = document.getElementById("sendBtn");
 
-  // ===== 倒數 + 顯示切換 =====
+  // ===== 倒數/切換 =====
   let videoShown = false;
 
-  function formatCountdown(diffMs){
+  function formatCountdown(diffMs) {
     const total = Math.max(0, diffMs);
     const d = Math.floor(total / (1000 * 60 * 60 * 24));
     const h = Math.floor((total % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const m = Math.floor((total % (1000 * 60 * 60)) / (1000 * 60));
     const s = Math.floor((total % (1000 * 60)) / 1000);
-    return `${d}天 ${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+    return `${d}天 ${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   }
 
-  async function showVideo(){
+  async function showVideo() {
     if (videoShown) return;
     videoShown = true;
 
     countdownUI.style.display = "none";
     videoEl.style.display = "block";
 
-    try{
-      // iOS 可能需要使用者手勢才可播放；但 muted 通常可自動播
+    try {
       await videoEl.play();
-    }catch(e){
-      // 播放被阻擋時，不要炸錯；使用者點一下畫面就會播
+    } catch (e) {
       console.warn("Autoplay blocked:", e);
     }
   }
 
-  function updateCountdown(){
+  function updateCountdown() {
     const now = Date.now();
     const diff = VIDEO_SWITCH_AT - now;
 
-    if (diff <= 0){
+    if (diff <= 0) {
       showVideo();
       return;
     }
-
     timerEl.innerText = formatCountdown(diff);
   }
 
@@ -304,7 +300,7 @@
   // ===== 彈幕開關 =====
   let danmuVisible = true;
 
-  function updateDanmuVisibility(){
+  function updateDanmuVisibility() {
     overlay.style.display = danmuVisible ? "block" : "none";
     toggleBtn.textContent = danmuVisible ? "彈幕：開" : "彈幕：關";
   }
@@ -316,45 +312,16 @@
 
   updateDanmuVisibility();
 
-  // ===== 發送祝福 =====
-  function sanitizeText(text){
-    // 基本清理：去除過多空白、避免空字串
-    return text.replace(/\s+/g, " ").trim();
-  }
-
-  sendBtn.addEventListener("click", () => {
-    const text = sanitizeText(input.value);
-    if (!text) return;
-
-		sendBtn.addEventListener("click", async () => {
-		  const text = sanitizeText(input.value);
-		  if (!text) return;
-
-		  try {
-			await push(messagesRef, { content: text, time: Date.now() });
-			console.log("✅ 寫入成功");
-			input.value = "";
-		  } catch (err) {
-			console.error("❌ 寫入失敗", err);
-		  }
-		});
-    input.value = "";
-  });
-
-  input.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") sendBtn.click();
-  });
-
-  // ===== 彈幕生成 =====
-  function createDanmu(text){
+  // ===== 彈幕 =====
+  function createDanmu(text) {
     if (!text) return;
 
     const div = document.createElement("div");
     div.className = "danmu";
     div.textContent = text;
 
-    const top = Math.random() * 70 + 5;      // 5% ~ 75%
-    const duration = 7 + Math.random() * 6;  // 7 ~ 13 秒
+    const top = Math.random() * 70 + 5;
+    const duration = 7 + Math.random() * 6;
 
     div.style.top = `${top}%`;
     div.style.animationDuration = `${duration}s`;
@@ -363,41 +330,62 @@
     div.style.color = colors[Math.floor(Math.random() * colors.length)];
 
     overlay.appendChild(div);
-
-    // 讓彈幕跑完就移除
     window.setTimeout(() => div.remove(), duration * 1000);
   }
 
-  // ===== 即時讀取祝福（限制最後 N 筆避免剛開頁爆量）=====
+  // 本地測試彈幕（確認 overlay OK）
+  createDanmu("測試彈幕：看到我代表畫面正常 ✨");
+  console.log("✅ local test danmu created");
+
+  // ===== 文字清理 =====
+  function sanitizeText(text) {
+    return String(text || "").replace(/\s+/g, " ").trim();
+  }
+
+  // ✅ 只保留「一個」送出事件（這就是你要的）
+  async function sendMessage() {
+    const raw = input.value;
+    const text = sanitizeText(raw);
+
+    console.log("👉 raw:", raw);
+    console.log("👉 click send:", text);
+
+    if (!text) {
+      console.log("空字串，略過送出");
+      return;
+    }
+
+    try {
+      await push(messagesRef, { content: text, time: Date.now() });
+      console.log("✅ push ok");
+      input.value = "";
+    } catch (err) {
+      console.error("❌ push failed:", err);
+    }
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendMessage();
+  });
+
+  // ===== 讀取 Firebase：最新 80 筆 =====
   const messagesQuery = query(messagesRef, limitToLast(80));
   onChildAdded(messagesQuery, (data) => {
     const msg = data.val();
+    console.log("📩 onChildAdded:", msg);
     createDanmu(msg?.content);
   });
 
-  createDanmu("彈幕測試：如果看到我，畫面層級正常 ✨");
-  // 測試：強制顯示一條本地測試彈幕（不靠 Firebase）
-	try {
-	  createDanmu("測試彈幕：如果看到我，JS 與 overlay 正常 ✨");
-	  console.log("✅ local test danmu created");
-	} catch (e) {
-	  console.error("❌ createDanmu fail:", e);
-	}
-
-	// 對發送按鈕加上詳細 log（方便追蹤）
-	sendBtn.addEventListener("click", async () => {
-	  const text = sanitizeText(input.value || "");
-	  console.log("👉 click send:", text);
-	  if (!text) return console.log("空字串，略過送出");
-
-	  try {
-		await push(messagesRef, { content: text, time: Date.now() });
-		console.log("✅ push ok");
-		input.value = "";
-	  } catch (err) {
-		console.error("❌ push failed:", err);
-	  }
-	});
+  // 背景切換時暫停/恢復
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      if (!videoEl.paused) videoEl.pause();
+    } else {
+      updateCountdown();
+      if (videoShown && videoEl.paused) videoEl.play().catch(() => {});
+    }
+  });
 </script>
 
 </body>
