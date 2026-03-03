@@ -369,13 +369,7 @@
     if (e.key === "Enter") sendMessage();
   });
 
-  // ===== 讀取 Firebase：最新 80 筆 =====
-  const messagesQuery = query(messagesRef, limitToLast(80));
-  onChildAdded(messagesQuery, (data) => {
-    const msg = data.val();
-    console.log("📩 onChildAdded:", msg);
-    createDanmu(msg?.content);
-  });
+ 
 
   // 背景切換時暫停/恢復
   document.addEventListener("visibilitychange", () => {
@@ -387,99 +381,57 @@
     }
   });
   
-  // ========================
-// 🔁 彈幕輪播系統（直接貼底下）
+  
+  
+  
+// ========================
+// 🎯 隨機彈幕輪播（最多20條）
 // ========================
 
-// 如果前面沒有宣告，這裡保險宣告一次
-if (typeof danmuPool === "undefined") {
-  window.danmuPool = [];
-}
+let danmuPool = [];
+let danmuTimer = null;
 
-// 改寫 onChildAdded：只存資料，不直接播放
-// （如果你前面已經有 onChildAdded，請刪掉舊的那段）
-const messagesQuery = query(messagesRef, limitToLast(80));
+const MAX_DANMU_COUNT = 20;   // 最多保留 20 條
+const DANMU_INTERVAL = 2500;  // 每 2.5 秒一條（不會太密）
+
+// 改寫資料讀取（只存，不直接播放）
+const messagesQuery = query(messagesRef, limitToLast(50));
 
 onChildAdded(messagesQuery, (data) => {
   const msg = data.val();
-  if (msg?.content) {
-    danmuPool.push(msg.content);
+  if (!msg?.content) return;
+
+  // 加入池子
+  danmuPool.push(msg.content);
+
+  // 超過 20 條就刪最舊的
+  if (danmuPool.length > MAX_DANMU_COUNT) {
+    danmuPool.shift();
   }
 });
 
-// 輪播設定
-let danmuIndex = 0;
-const DANMU_INTERVAL = 2000; // 每 2 秒一條
-
+// 隨機播放
 function startDanmuLoop() {
-  setInterval(() => {
+  if (danmuTimer) clearInterval(danmuTimer);
+
+  danmuTimer = setInterval(() => {
     if (!danmuVisible) return;
-    if (!danmuPool || danmuPool.length === 0) return;
+    if (danmuPool.length === 0) return;
 
-    // 順序輪播（不重複亂跳）
-    createDanmu(danmuPool[danmuIndex]);
+    const randomIndex = Math.floor(Math.random() * danmuPool.length);
+    const text = danmuPool[randomIndex];
 
-    danmuIndex++;
-    if (danmuIndex >= danmuPool.length) {
-      danmuIndex = 0;
-    }
+    createDanmu(text);
 
   }, DANMU_INTERVAL);
 }
 
-// 啟動輪播
 startDanmuLoop();
 
-// 本地測試（確保至少有一條）
+// 保底一條（避免畫面太空）
 if (danmuPool.length === 0) {
   danmuPool.push("祁煜生日快樂 💙");
-// ========================
-// 🔁 彈幕輪播系統（直接貼底下）
-// ========================
-
-// 如果前面沒有宣告，這裡保險宣告一次
-if (typeof danmuPool === "undefined") {
-  window.danmuPool = [];
 }
-
-// 改寫 onChildAdded：只存資料，不直接播放
-// （如果你前面已經有 onChildAdded，請刪掉舊的那段）
-const messagesQuery = query(messagesRef, limitToLast(80));
-
-onChildAdded(messagesQuery, (data) => {
-  const msg = data.val();
-  if (msg?.content) {
-    danmuPool.push(msg.content);
-  }
-});
-
-// 輪播設定
-let danmuIndex = 0;
-const DANMU_INTERVAL = 2000; // 每 2 秒一條
-
-function startDanmuLoop() {
-  setInterval(() => {
-    if (!danmuVisible) return;
-    if (!danmuPool || danmuPool.length === 0) return;
-
-    // 順序輪播（不重複亂跳）
-    createDanmu(danmuPool[danmuIndex]);
-
-    danmuIndex++;
-    if (danmuIndex >= danmuPool.length) {
-      danmuIndex = 0;
-    }
-
-  }, DANMU_INTERVAL);
-}
-
-// 啟動輪播
-startDanmuLoop();
-
-// 本地測試（確保至少有一條）
-if (danmuPool.length === 0) {
-  danmuPool.push("祁煜生日快樂 💙");
-}}
 </script>
 
 </body>
